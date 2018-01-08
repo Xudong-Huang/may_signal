@@ -1,0 +1,16 @@
+language: rust
+sudo: false
+
+os:
+ - linux
+ - osx
+
+rust:
+  - stable
+  - nightly
+
+evn:
+  - RUST_BACKTRACE=1
+
+script:
+  - cargo test
