@@ -2,6 +2,25 @@
 name = "may_signal"
 version = "0.1.0"
 authors = ["Xudong Huang <huangxu008@hotmail.com>"]
+license = "MIT/Apache-2.0"
+repository = "https://github.com/Xudong-Huang/may_signal"
+homepage = "https://github.com/Xudong-Huang/may_signal"
+documentation = "https://docs.rs/may_signal"
+description = """
+Signal stream handling libary implemented by `may`.
+"""
+categories = ["asynchronous"]
+
+[badges]
+travis-ci = { repository = "Xudong-Huang/may_signal" }
+appveyor = { repository = "Xudong-Huang/may_signal" }
 
 [dependencies]
 may = { git = "https://github.com/Xudong-Huang/may.git" }
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+# [target.'cfg(windows)'.dependencies.winapi]
+# version = "0.3"
+# features = ["minwindef", "wincon"]
