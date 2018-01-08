@@ -31,10 +31,14 @@
 // #[macro_use]
 #[doc(hidden)]
 extern crate may;
-use may::sync::mpsc::{Receiver};
 
-// pub mod unix;
-// pub mod windows;
+pub mod unix;
+pub mod windows;
+
+#[cfg(unix)]
+pub use unix::Signal;
+#[cfg(windows)]
+pub use windows::Signal;
 
 /// Creates a stream which receives "ctrl-c" notifications sent to a process.
 ///
@@ -45,16 +49,25 @@ use may::sync::mpsc::{Receiver};
 ///
 /// This function returns a signal receiver on which you can get all the signal
 /// events.
-pub fn ctrl_c() -> Receiver<()> {
+pub fn ctrl_c() -> Signal {
     return ctrl_c_imp();
 
     #[cfg(unix)]
-    fn ctrl_c_imp() -> Receiver<()> {
-        unimplemented!()
+    fn ctrl_c_imp() -> Signal {
+        Signal::new(unix::libc::SIGINT).expect("failed to create Signal")
     }
 
     #[cfg(windows)]
-    fn ctrl_c_imp() -> Receiver<()> {
-        unimplemented!()
+    fn ctrl_c_imp() -> Signal {
+        Signal::new(windows::SigType::CTRL_C)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn create_ctrl_c() {
+        let _s = ctrl_c();
     }
 }
