@@ -6,17 +6,16 @@
 #![cfg(unix)]
 
 pub extern crate libc;
-use std::cell::UnsafeCell;
 use std::io;
 use std::mem;
 use std::ops::Deref;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::cell::UnsafeCell;
 use std::sync::{Once, ONCE_INIT};
 
 use may::sync::Mutex;
 use may::sync::mpsc::{self, Receiver, Sender};
-use self::libc::c_int;
 
+use self::libc::c_int;
 pub use self::libc::{SIGUSR1, SIGUSR2, SIGINT, SIGTERM};
 pub use self::libc::{SIGALRM, SIGHUP, SIGPIPE, SIGQUIT, SIGTRAP};
 
@@ -24,7 +23,6 @@ pub use self::libc::{SIGALRM, SIGHUP, SIGPIPE, SIGQUIT, SIGTRAP};
 const SIGNUM: usize = 32;
 
 struct SignalInfo {
-    pending: AtomicBool,
     // The ones interested in this signal
     recipients: Mutex<Vec<Box<Sender<()>>>>,
     init: Once,
@@ -35,7 +33,6 @@ struct SignalInfo {
 impl Default for SignalInfo {
     fn default() -> SignalInfo {
         SignalInfo {
-            pending: AtomicBool::new(false),
             init: ONCE_INIT,
             initialized: UnsafeCell::new(false),
             recipients: Mutex::new(Vec::new()),
@@ -82,7 +79,6 @@ extern "C" fn handler(signum: c_int, info: *mut libc::siginfo_t, ptr: *mut libc:
             Some(slot) => slot,
             None => return,
         };
-        slot.pending.store(true, Ordering::SeqCst);
 
         // broadcast the signal
         for tx in slot.recipients.lock().unwrap().iter() {
