@@ -156,6 +156,7 @@ pub struct Signal {
 // automatically. But the only thing we use the raw pointer for is to identify
 // the correct Box to delete, not manipulate any data through that.
 unsafe impl Send for Signal {}
+unsafe impl Sync for Signal {}
 
 impl Signal {
     /// Creates a new stream which will receive notifications when the current
