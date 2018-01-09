@@ -50,17 +50,19 @@ pub use windows::Signal;
 /// This function returns a signal receiver on which you can get all the signal
 /// events.
 pub fn ctrl_c() -> Signal {
-    return ctrl_c_imp();
+    use std::io;
 
     #[cfg(unix)]
-    fn ctrl_c_imp() -> Signal {
-        Signal::new(unix::libc::SIGINT).expect("failed to create Signal")
+    fn ctrl_c_imp() -> io::Result<Signal> {
+        Signal::new(unix::SIGINT)
     }
 
     #[cfg(windows)]
-    fn ctrl_c_imp() -> Signal {
-        Signal::new(windows::SigType::CTRL_C)
+    fn ctrl_c_imp() -> io::Result<Signal> {
+        Signal::new(windows::CTRL_C_EVENT)
     }
+
+    return ctrl_c_imp().expect("failed to create Signal");
 }
 
 #[cfg(test)]

@@ -21,6 +21,6 @@ may = { git = "https://github.com/Xudong-Huang/may.git" }
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
 
-# [target.'cfg(windows)'.dependencies.winapi]
-# version = "0.3"
-# features = ["minwindef", "wincon"]
+[target.'cfg(windows)'.dependencies.winapi]
+version = "0.3"
+features = ["minwindef", "wincon"]
