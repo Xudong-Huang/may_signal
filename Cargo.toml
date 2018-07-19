@@ -16,7 +16,7 @@ travis-ci = { repository = "Xudong-Huang/may_signal" }
 appveyor = { repository = "Xudong-Huang/may_signal" }
 
 [dependencies]
-may = { git = "https://github.com/Xudong-Huang/may.git" }
+may = "0.3"
 
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
