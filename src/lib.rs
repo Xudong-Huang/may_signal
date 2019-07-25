@@ -28,10 +28,6 @@
 #![doc(html_root_url = "https://docs.rs/may_signal/0.1")]
 #![deny(missing_docs)]
 
-// #[macro_use]
-#[doc(hidden)]
-extern crate may;
-
 pub mod unix;
 pub mod windows;
 
@@ -62,7 +58,7 @@ pub fn ctrl_c() -> Signal {
         Signal::new(windows::CTRL_C_EVENT)
     }
 
-    return ctrl_c_imp().expect("failed to create Signal");
+    ctrl_c_imp().expect("failed to create Signal")
 }
 
 #[cfg(test)]

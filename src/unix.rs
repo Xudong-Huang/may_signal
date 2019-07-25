@@ -5,19 +5,18 @@
 
 #![cfg(unix)]
 
-pub extern crate libc;
+use std::cell::UnsafeCell;
 use std::io;
 use std::mem;
 use std::ops::Deref;
-use std::cell::UnsafeCell;
-use std::sync::{Once, ONCE_INIT};
+use std::sync::Once;
 
-use may::sync::Mutex;
 use may::sync::mpsc::{self, Receiver, Sender};
+use may::sync::Mutex;
 
-use self::libc::c_int;
-pub use self::libc::{SIGUSR1, SIGUSR2, SIGINT, SIGTERM};
-pub use self::libc::{SIGALRM, SIGHUP, SIGPIPE, SIGQUIT, SIGTRAP};
+use libc::c_int;
+pub use libc::{SIGALRM, SIGHUP, SIGPIPE, SIGQUIT, SIGTRAP};
+pub use libc::{SIGINT, SIGTERM, SIGUSR1, SIGUSR2};
 
 // Number of different unix signals
 const SIGNUM: usize = 32;
@@ -33,7 +32,7 @@ struct SignalInfo {
 impl Default for SignalInfo {
     fn default() -> SignalInfo {
         SignalInfo {
-            init: ONCE_INIT,
+            init: Once::new(),
             initialized: UnsafeCell::new(false),
             recipients: Mutex::new(Vec::new()),
             prev: UnsafeCell::new(unsafe { mem::zeroed() }),
@@ -48,7 +47,7 @@ struct Globals {
 static mut GLOBALS: *mut Globals = 0 as *mut Globals;
 
 fn globals() -> &'static Globals {
-    static INIT: Once = ONCE_INIT;
+    static INIT: Once = Once::new();
 
     unsafe {
         INIT.call_once(|| {
@@ -174,7 +173,7 @@ impl Signal {
     /// channels will receive the signal notification.
     pub fn new(signal: c_int) -> io::Result<Signal> {
         // Turn the signal delivery on once we are ready for it
-        try!(signal_enable(signal));
+        signal_enable(signal)?;
 
         // One wakeup in a queue is enough, no need for us to buffer up any
         // more.
@@ -183,11 +182,7 @@ impl Signal {
         let id: *const _ = &*tx;
         let idx = signal as usize;
         globals().signals[idx].recipients.lock().unwrap().push(tx);
-        Ok(Signal {
-            rx: rx,
-            id: id,
-            signal: signal,
-        })
+        Ok(Signal { rx, id, signal })
     }
 }
 

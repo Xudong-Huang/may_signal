@@ -4,19 +4,17 @@
 //! for receiving notifications of events. These events are listened for via the
 //! `SetConsoleCtrlHandler` function which receives events of the type
 //! `CTRL_C_EVENT` and `CTRL_BREAK_EVENT`
-
 #![cfg(windows)]
-extern crate winapi;
 
 use std::io;
 use std::ops::Deref;
-use std::sync::{Once, ONCE_INIT};
+use std::sync::Once;
 
-use may::sync::Mutex;
 use may::sync::mpsc::{self, Receiver, Sender};
-use self::winapi::shared::minwindef::*;
+use may::sync::Mutex;
+use winapi::shared::minwindef::*;
 
-pub use self::winapi::um::wincon::{CTRL_BREAK_EVENT, CTRL_C_EVENT};
+pub use winapi::um::wincon::{CTRL_BREAK_EVENT, CTRL_C_EVENT};
 
 extern "system" {
     fn SetConsoleCtrlHandler(HandlerRoutine: usize, Add: BOOL) -> BOOL;
@@ -48,7 +46,7 @@ struct Globals {
 static mut GLOBALS: *mut Globals = 0 as *mut Globals;
 
 fn globals() -> &'static Globals {
-    static INIT: Once = ONCE_INIT;
+    static INIT: Once = Once::new();
 
     unsafe {
         INIT.call_once(|| {
@@ -61,7 +59,7 @@ fn globals() -> &'static Globals {
         let rc = SetConsoleCtrlHandler(handler as usize, TRUE);
         if rc == 0 {
             Box::from_raw(GLOBALS);
-            GLOBALS = 0 as *mut _;
+            GLOBALS = std::ptr::null_mut();
             // return Err(io::Error::last_os_error())
             panic!("failed to set console handler");
         }
@@ -136,8 +134,8 @@ impl Signal {
         let id: *const _ = &*tx;
         globals().signals[slot].recipients.lock().unwrap().push(tx);
         Ok(Signal {
-            rx: rx,
-            id: id,
+            rx,
+            id,
             signal: slot,
         })
     }
